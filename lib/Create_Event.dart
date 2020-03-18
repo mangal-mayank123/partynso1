@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_absolute_path/flutter_absolute_path.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,6 +10,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
+import 'package:partynso/view.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'Homepage.dart';
 import 'Post.dart';
@@ -23,14 +26,18 @@ class createevent extends StatefulWidget {
 }
 
 class _createeventState extends State<createevent> {
+  RangeValues range = RangeValues(0, 100);
+  var age_s = 0.0, age_e = 30.0;
   GoogleMapController mapController;
   String searchAddr;
+  String ename = "pp";
   DateTime buttonvalue = DateTime.now();
   DateTime _currentdate = new DateTime.now();
   TimeOfDay _currenttime = new TimeOfDay.now();
   String image_path;
   ProgressDialog progressDialog;
-  List<File> l = new List<File>(6);
+  List<Asset> l;
+  List<File> file;
   File images, sample, sample0, sample1, sample2, sample3, sample4, sample5;
   var count = 0;
   var formkey = GlobalKey<FormState>();
@@ -42,8 +49,12 @@ class _createeventState extends State<createevent> {
   var location = "l";
   String total_member;
 
+  var no = "9";
+
   @override
   void initState() {
+    l = new List<Asset>(6);
+    file = new List<File>(6);
     if (widget.lastMapPosition == null) {
       address = "Address";
     } else {
@@ -60,7 +71,7 @@ class _createeventState extends State<createevent> {
   }
 
   Future getimage(int i) async {
-    await ImagePicker.pickImage(source: ImageSource.gallery).then((value) {
+    /*await ImagePicker.pickImage(source: ImageSource.gallery).then((value) {
       if (mounted) {
         if (value != null) {
           setState(() {
@@ -69,6 +80,34 @@ class _createeventState extends State<createevent> {
           });
         }
       }
+    });*/
+    List<Asset> resultList = List<Asset>();
+    String error = 'No Error Dectected';
+
+    try {
+      resultList = await MultiImagePicker.pickImages(
+        maxImages: 6,
+        enableCamera: true,
+        cupertinoOptions: CupertinoOptions(takePhotoIcon: "chat"),
+        materialOptions: MaterialOptions(
+          actionBarColor: "#abcdef",
+          actionBarTitle: "Example App",
+          allViewTitle: "All Photos",
+          useDetailsView: false,
+          selectCircleStrokeColor: "#000000",
+        ),
+      );
+    } on Exception catch (e) {
+      error = e.toString();
+    }
+
+    // If the widget was removed from the tree while the asynchronous platform
+    // message was in flight, we want to discard the reply rather than calling
+    // setState to update our non-existent appearance.
+    if (!mounted) return;
+
+    setState(() {
+      l = resultList;
     });
   }
 
@@ -95,7 +134,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[0] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[0]),
+                    : AssetThumb(
+                        asset: l[0],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
               InkWell(
                 onTap: () {
@@ -104,7 +147,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[1] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[1]),
+                    : AssetThumb(
+                        asset: l[1],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
               InkWell(
                 onTap: () {
@@ -113,7 +160,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[2] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[2]),
+                    : AssetThumb(
+                        asset: l[2],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
               InkWell(
                 onTap: () {
@@ -122,7 +173,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[3] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[3]),
+                    : AssetThumb(
+                        asset: l[3],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
               InkWell(
                 onTap: () {
@@ -130,7 +185,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[4] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[4]),
+                    : AssetThumb(
+                        asset: l[4],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
               InkWell(
                 onTap: () {
@@ -138,7 +197,11 @@ class _createeventState extends State<createevent> {
                 },
                 child: l[5] == null
                     ? Image.asset('assets/images/plus1.jpg')
-                    : Image.file(l[5]),
+                    : AssetThumb(
+                        asset: l[5],
+                        width: 300,
+                        height: 300,
+                      ),
               ),
             ],
           ),
@@ -249,29 +312,28 @@ class _createeventState extends State<createevent> {
                     ),
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height * .01),
+                  Text("Age_Group"),
                   Container(
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: ' Age Group',
-                      ),
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.left,
-                      validator: (val) {
-                        if (val.isEmpty) {
-                          return 'Total Size';
-                        }
-                      },
+                    child: RangeSlider(
+                      values: range,
                       onChanged: (v) {
-                        total_member = v;
-                      },
-                      onSaved: (v) {
                         setState(() {
-                          Post.post['age_group'] = v;
+                          age_s = v.start;
+                          age_e = v.end;
+                          range = v;
+                          Post.post['age_group_s'] = v.start.floor();
+                          Post.post['age_group_e'] = v.end.floor();
                         });
                       },
+                      min: 0,
+                      max: 100,
+                      divisions: 100,
+                      labels: RangeLabels(
+                          '${range.start.floor()}', '${range.end.floor()}'),
                     ),
                   ),
+                  Text('min  - ' + age_s.floor().toString()),
+                  Text('max - ' + age_e.floor().toString()),
                   SizedBox(height: MediaQuery.of(context).size.height * .01),
                   Container(
                     padding: EdgeInsets.only(right: 10),
@@ -429,7 +491,6 @@ class _createeventState extends State<createevent> {
                     child: OutlineButton(
                       child: Text("Create Party"),
                       onPressed: () {
-                        progressDialog.show();
                         savetodatabase();
                       },
                     ),
@@ -454,23 +515,6 @@ class _createeventState extends State<createevent> {
         _currentdate = picked;
       });
   }
-  /*Future<Null> _selectdate(BuildContext context) async {
-    final DateTime _seldate = await showDatePicker(
-        context: context,
-        initialDate: _currentdate,
-        firstDate: DateTime(2018),
-        lastDate: DateTime(2030),
-        builder: (context, child) {
-          return SingleChildScrollView(
-            child: child,
-          );
-        });
-    if (_seldate != null) {
-      setState(() {
-        _currentdate = _seldate;
-      });
-    }
-  }*/
 
   Future<Null> _selecttime(BuildContext context) async {
     final TimeOfDay _seldate = await showTimePicker(
@@ -488,15 +532,27 @@ class _createeventState extends State<createevent> {
     final form = formkey.currentState;
     if (form.validate()) {
       form.save();
+      setState(() {
+        Scaffold.of(context).showSnackBar(SnackBar(
+          content: Text("Uploaded Succesfully"),
+          duration: Duration(seconds: 2),
+        ));
+      });
       Post.post['list'] = new List();
+      Post.post['dislikes'] = new List();
       Post.post['date'] = _currentdate.day.toString() +
           (_currentdate.month.toString().length == 1
               ? "/0" + _currentdate.month.toString()
               : '/' + _currentdate.month.toString()) +
           "/" +
           _currentdate.year.toString();
-      Post.post['time'] =
-          _currenttime.hour.toString() + ":" + _currenttime.minute.toString();
+      Post.post['timestamp'] = Timestamp.fromDate(_currentdate);
+      var z = _currenttime.minute;
+      Post.post['time'] = _currenttime.hour.toString() +
+          ":" +
+          (z < 10
+              ? "0" + _currenttime.minute.toString()
+              : _currenttime.minute.toString());
       String id = User.userprofile['user_id'];
       Post.post['user_id'] = id;
       Post.post['coordi_la'] = widget.lastMapPosition.latitude.toString();
@@ -506,16 +562,6 @@ class _createeventState extends State<createevent> {
       Post.post['user_name'] = y.data['f_name'] + " " + y.data['l_name'];
       var x = await Firestore.instance.collection('Venue').add(Post.post);
       venuid = x.documentID;
-
-      Firestore.instance.collection("Profile").snapshots().listen((event) {
-        event.documents.forEach((element) {
-          Firestore.instance
-              .collection("Profile")
-              .document(element.documentID)
-              .collection("events")
-              .add({'venue_id': venuid}).then((value) => print('inserted'));
-        });
-      });
 
       Post.post['venue_id'] = venuid;
       await Firestore.instance
@@ -528,17 +574,21 @@ class _createeventState extends State<createevent> {
           .collection('venues')
           .add({"venu_id": venuid});
       uploadToFirebase();
+      progressDialog.hide();
     }
   }
 
   uploadToFirebase() async {
-    l.forEach((filePath) {
-      upload(filePath);
+    l.forEach((filePath) async {
+      var path2 =
+          await FlutterAbsolutePath.getAbsolutePath(filePath.identifier);
+      //var path = await images[i].filePath;
+      File f = await File(path2);
+      await upload(f);
     });
   }
 
   upload(filePath) async {
-    print(l);
     StorageReference storageRef = FirebaseStorage.instance
         .ref()
         .child(filePath.toString().split("/").last);
@@ -557,6 +607,10 @@ class _createeventState extends State<createevent> {
     } catch (e) {
       print(e);
     }
-    progressDialog.hide();
+    setState(() {
+      ename = "pp";
+      no = "9";
+      l = new List(6);
+    });
   }
 }

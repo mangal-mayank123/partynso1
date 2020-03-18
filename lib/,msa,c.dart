@@ -1,7 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/directions.dart';
+import 'package:google_maps_webservice/places.dart';
 
 class MapsDemo extends StatefulWidget {
   MapsDemo() : super();
@@ -20,6 +24,7 @@ class MapsDemoState extends State<MapsDemo> {
   bool mark = false;
   var i = 0;
   LatLng _lastMapPosition = _center;
+  TextEditingController controller = TextEditingController();
   MapType _currentMapType = MapType.normal;
   Position position;
   static final CameraPosition _position1 = CameraPosition(
@@ -155,7 +160,15 @@ class MapsDemoState extends State<MapsDemo> {
   }
 
   save_location() {
-    print("kbkkn,nk,");
+    print("kbkknnk");
     Navigator.pop(context, _lastMapPosition);
+  }
+
+  void sendRequest(String intendedLocation) async {
+    List<Placemark> placemark =
+        await Geolocator().placemarkFromAddress(intendedLocation);
+    double latitude = placemark[0].position.latitude;
+    double longitude = placemark[0].position.longitude;
+    LatLng destination = LatLng(latitude, longitude);
   }
 }

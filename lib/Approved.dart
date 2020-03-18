@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:partynso/Post.dart';
 import 'package:partynso/Single_event.dart';
@@ -10,7 +11,8 @@ class Approved extends StatefulWidget {
   _ApprovedState createState() => _ApprovedState();
 }
 
-class _ApprovedState extends State<Approved> {
+class _ApprovedState extends State<Approved>
+    with AutomaticKeepAliveClientMixin {
   String id;
   usr() async {
     id = User.userprofile['user_id'];
@@ -58,21 +60,44 @@ class _ApprovedState extends State<Approved> {
                                       vertical: 4.0, horizontal: 6),
                                   child: Row(
                                     children: <Widget>[
-                                      CircleAvatar(
-                                          backgroundColor: Colors.grey),
+                                      FutureBuilder<QuerySnapshot>(
+                                        future: Firestore.instance
+                                            .collection("Profile")
+                                            .document(snapshot.data
+                                                .documents[index]['user_id'])
+                                            .collection('images')
+                                            .getDocuments(),
+                                        builder: (BuildContext context,
+                                            AsyncSnapshot c) {
+                                          if (c.hasData) {
+                                            return CircleAvatar(
+                                              radius: 25.0,
+                                              backgroundColor: Colors.grey,
+                                              backgroundImage: NetworkImage(
+                                                  c.data.documents[0]['url']),
+                                            );
+                                          } else {
+                                            return CircleAvatar(
+                                                backgroundColor: Colors.grey);
+                                          }
+                                        },
+                                      ),
                                       SizedBox(
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *
-                                              .02),
+                                              .01),
                                       Column(
                                         children: <Widget>[
-                                          Text(
-                                              snapshot.data.documents[index]
-                                                  ["E_name"],
-                                              style: TextStyle(
-                                                  fontSize: 15,
-                                                  color: Colors.white70)),
+                                          Container(
+                                            child: Text(
+                                                snapshot.data.documents[index]
+                                                    ["E_name"],
+                                                softWrap: true,
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.white70)),
+                                          ),
                                           Text(snapshot.data.documents[index]
                                               ['status']),
                                         ],
@@ -81,7 +106,7 @@ class _ApprovedState extends State<Approved> {
                                           width: MediaQuery.of(context)
                                                   .size
                                                   .width *
-                                              .23),
+                                              .08),
                                       Column(
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
@@ -96,13 +121,9 @@ class _ApprovedState extends State<Approved> {
                                                 color: Colors.white70,
                                               )),
                                           SizedBox(height: 4),
-                                          Text(
-                                              snapshot.data.documents[index]
-                                                  ["time"],
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 15,
-                                              )),
+                                          time(snapshot
+                                              .data.documents[index]["time"]
+                                              .toString()),
                                           Text(
                                               snapshot.data.documents[index]
                                                   ["address"],
@@ -128,4 +149,32 @@ class _ApprovedState extends State<Approved> {
             ),
     );
   }
+
+  time(snapshot) {
+    if (int.parse(snapshot.toString().split(":").first) > 12) {
+      return Text(
+          (int.parse(snapshot.toString().split(":").first) - 12).toString() +
+              ":" +
+              snapshot.toString().split(":").last +
+              " PM",
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 15,
+          ));
+    } else {
+      return Text(
+          (int.parse(snapshot.toString().split(":").first)).toString() +
+              ":" +
+              snapshot.toString().split(":").last +
+              " AM",
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 15,
+          ));
+    }
+  }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

@@ -10,10 +10,10 @@ class event_preferences extends StatefulWidget {
 }
 
 class _event_preferencesState extends State<event_preferences> {
-  var slider = 0.0, age, group_type, peoples ;
+  var slider = 0.0, group_type, peoples;
   RangeValues range = RangeValues(0, 100);
-  var age_s , age_e ;
-  var select_gender ;
+  var age_s, age_e;
+  var select_gender;
 
   var formkey = GlobalKey<FormState>();
   @override
@@ -93,8 +93,8 @@ class _event_preferencesState extends State<event_preferences> {
                       });
                     },
                     min: 0,
-                    max: 100,
-                    divisions: 100,
+                    max: 1000,
+                    divisions: 1000,
                     label: '${slider.floor()}',
                   ),
                 ),

@@ -2,7 +2,6 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:progress_dialog/progress_dialog.dart';
-
 import 'Profile.dart';
 import 'Profile2.dart';
 
@@ -24,7 +23,7 @@ class _single_eventState extends State<single_event> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          height: MediaQuery.of(context).size.height * .7,
+          height: MediaQuery.of(context).size.height * .8,
           child: FutureBuilder(
             future: Firestore.instance
                 .collection("Venue")
@@ -82,7 +81,7 @@ class _single_eventState extends State<single_event> {
                                       }
                                       return new Container(
                                           child: new CarouselSlider(
-                                        height: 300.0,
+                                        height: 200.0,
                                         initialPage: 0,
                                         items: list.map((e) {
                                           return Builder(
@@ -118,7 +117,8 @@ class _single_eventState extends State<single_event> {
                               ),
                               Expanded(
                                   child: Center(
-                                      child: Text(snapshot.data['time']))),
+                                      child: time(
+                                          snapshot.data['time'].toString()))),
                             ],
                           ),
                         ),
@@ -129,7 +129,7 @@ class _single_eventState extends State<single_event> {
                                 child: Row(
                                   children: <Widget>[
                                     Icon(Icons.cake),
-                                    Text(snapshot.data['age_group']),
+                                    /* Text(snapshot.data['age_group']),*/
                                   ],
                                 ),
                               ),
@@ -166,6 +166,81 @@ class _single_eventState extends State<single_event> {
                             ],
                           ),
                         ),
+                        Container(
+                          height: MediaQuery.of(context).size.height * .18,
+                          child: Column(
+                            children: <Widget>[
+                              Text(
+                                'What is this event about ? ',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  color: Colors.yellow[200],
+                                  child: Text(snapshot.data['about']),
+                                ),
+                              ),
+                              Text('What will we do ? ',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              Expanded(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  color: Colors.yellow[300],
+                                  child: Text(snapshot.data['wedo']),
+                                ),
+                              ),
+                              Text('What is my contribution ? ',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
+                              Expanded(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  color: Colors.yellow[400],
+                                  child: Text(snapshot.data['contribute']),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * .01,
+                        ),
+                        Container(
+                            height: MediaQuery.of(context).size.height * .04,
+                            width: MediaQuery.of(context).size.width,
+                            color: Colors.deepPurple[200],
+                            child: FutureBuilder(
+                                future: Firestore.instance
+                                    .collection('Profile')
+                                    .document(snapshot.data['user_id'])
+                                    .get(),
+                                builder: (context, AsyncSnapshot snapshot) {
+                                  if (snapshot.hasData) {
+                                    return Text(
+                                      'Contact no.- ' + snapshot.data['mobno'],
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold),
+                                    );
+                                  } else {
+                                    return Text("loading...");
+                                  }
+                                })),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * .01,
+                        ),
+                        Container(
+                          height: MediaQuery.of(context).size.height * .04,
+                          width: MediaQuery.of(context).size.width,
+                          color: Colors.deepPurple[200],
+                          child: Text(
+                            snapshot.data['location'],
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -178,5 +253,20 @@ class _single_eventState extends State<single_event> {
         ),
       ),
     );
+  }
+
+  time(snapshot) {
+    if (int.parse(snapshot.toString().split(":").first) > 12) {
+      return Text(
+          (int.parse(snapshot.toString().split(":").first) - 12).toString() +
+              ":" +
+              snapshot.toString().split(":").last +
+              " PM");
+    } else {
+      return Text((int.parse(snapshot.toString().split(":").first)).toString() +
+          ":" +
+          snapshot.toString().split(":").last +
+          " AM");
+    }
   }
 }

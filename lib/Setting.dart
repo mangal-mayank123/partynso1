@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:partynso/Event_Preferences.dart';
+import 'package:partynso/Rating_page.dart';
 import 'package:partynso/User.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 import 'Event_history.dart';
 import 'Login.dart';
 import 'Profile.dart';
+import 'Rating_page.dart';
 
 class Setting extends StatefulWidget {
   @override
@@ -14,6 +19,24 @@ class Setting extends StatefulWidget {
 }
 
 class _SettingState extends State<Setting> {
+  var rating = 3.0;
+  bool t = false;
+  Widget _image(String asset) {
+    return Image.asset(
+      asset,
+      height: 30.0,
+      width: 30.0,
+      color: Colors.amber,
+    );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -111,6 +134,7 @@ class _SettingState extends State<Setting> {
                     FirebaseAuth.instance.currentUser().then((value) {
                       if (value != null) {
                         FirebaseAuth.instance.signOut().then((value) {
+                          User.userprofile["user_id"] = null;
                           Navigator.pushReplacement(context,
                               MaterialPageRoute(builder: (context) => login()));
                         });
@@ -129,5 +153,26 @@ class _SettingState extends State<Setting> {
             ],
           )),
         ]));
+  }
+
+  void set(BuildContext context, var rating) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SmoothStarRating(
+            allowHalfRating: true,
+            onRatingChanged: (value) {},
+            starCount: 5,
+            rating: rating,
+            size: 20.0,
+            color: Colors.yellowAccent,
+            borderColor: Colors.yellow,
+            spacing: 0.0,
+          ),
+        );
+      },
+    );
   }
 }

@@ -25,5 +25,7 @@ class User {
     'dating': null,
     'socialcircle': null,
     'password': null,
+    'rating': 1,
+    'no_of_ratings': 1,
   };
 }

@@ -1,12 +1,15 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:partynso/Homepage.dart';
 
 import 'package:partynso/Register.dart';
 import 'package:partynso/User.dart';
 import 'package:progress_dialog/progress_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Phoneverify extends StatefulWidget {
   @override
@@ -28,13 +31,45 @@ class _PhoneverifyState extends State<Phoneverify> {
     final PhoneCodeSent smsCodeSent = (String verId, [int forceCodeResend]) {
       this.verificationId = verId;
       smsCodeDialog(context).then((value) {
+        pr.hide();
         print('Signed in');
       });
     };
 
     final PhoneVerificationCompleted verifiedSuccess =
-        (AuthCredential credential) {
+        (AuthCredential credential) async {
       print('verified');
+      pr.show();
+      final FirebaseUser user =
+          (await _auth.signInWithCredential(credential)).user;
+      final FirebaseUser currentUser = await _auth.currentUser();
+      assert(user.uid == currentUser.uid);
+      User.userprofile['user_id'] = user.uid;
+      User.userprofile['mobno'] = phoneNo.toString();
+      SharedPreferences.getInstance().then((value) {
+        value.setString("user_id", User.userprofile["user_id"]);
+        value.setString(User.userprofile["user_id"] + "-age_e", "100");
+        value.setString(User.userprofile["user_id"] + "-age_s", "0");
+        value.setString(User.userprofile["user_id"] + "-slider", "1000");
+        value.setString(User.userprofile["user_id"] + "-group_type", "Man");
+        value.setString(
+            User.userprofile["user_id"] + "-peoples", 10.toString());
+
+        Firestore.instance
+            .collection("Profile")
+            .where('user_id', isEqualTo: user.uid)
+            .getDocuments()
+            .then((value) {
+          pr.hide();
+          if (value.documents.length != 0) {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => Homepage()));
+          } else {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => Register()));
+          }
+        });
+      });
     };
 
     final PhoneVerificationFailed veriFailed = (AuthException exception) {
@@ -45,7 +80,7 @@ class _PhoneverifyState extends State<Phoneverify> {
         phoneNumber: this.phoneNo,
         codeAutoRetrievalTimeout: autoRetrieve,
         codeSent: smsCodeSent,
-        timeout: const Duration(seconds: 5),
+        timeout: const Duration(seconds: 1),
         verificationCompleted: verifiedSuccess,
         verificationFailed: veriFailed);
   }
@@ -77,9 +112,9 @@ class _PhoneverifyState extends State<Phoneverify> {
                 actions: <Widget>[
                   new FlatButton(
                     child: Text('Done'),
-                    onPressed: () {
-                      FirebaseAuth.instance.currentUser().then((user) {
-                        if (user != null) {
+                    onPressed: () async {
+                      await FirebaseAuth.instance.currentUser().then((user) {
+                        if (user != null && this.smsCode != null) {
                           User.userprofile['user_id'] = user.uid;
                           User.userprofile['mobno'] = phoneNo.toString();
                           pr.hide();
@@ -87,6 +122,23 @@ class _PhoneverifyState extends State<Phoneverify> {
                           Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                   builder: (context) => Register()));
+                        } else if (this.smsCode == null) {
+                          showDialog(
+                              context: context,
+                              barrierDismissible: true,
+                              builder: (context) {
+                                return AlertDialog(
+                                  actions: <Widget>[
+                                    FlatButton(
+                                      child: Text("ok"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                    )
+                                  ],
+                                  content: Text("Please Enter Otp code"),
+                                );
+                              });
                         } else {
                           Navigator.of(context).pop();
                           pr.show();
@@ -113,9 +165,29 @@ class _PhoneverifyState extends State<Phoneverify> {
     assert(user.uid == currentUser.uid);
     User.userprofile['user_id'] = user.uid;
     User.userprofile['mobno'] = phoneNo.toString();
-    pr.hide();
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => Register()));
+    await pr.hide();
+    SharedPreferences.getInstance().then((value) {
+      value.setString("user_id", User.userprofile["user_id"]);
+      value.setString(User.userprofile["user_id"] + "-age_e", "100");
+      value.setString(User.userprofile["user_id"] + "-age_s", "0");
+      value.setString(User.userprofile["user_id"] + "-slider", "1000");
+      value.setString(User.userprofile["user_id"] + "-group_type", "Man");
+      value.setString(User.userprofile["user_id"] + "-peoples", 10.toString());
+      pr.hide();
+      Firestore.instance
+          .collection("Profile")
+          .where('user_id', isEqualTo: user.uid)
+          .getDocuments()
+          .then((value) {
+        if (value.documents.length != 0) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Homepage()));
+        } else {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Register()));
+        }
+      });
+    });
   }
 
   @override

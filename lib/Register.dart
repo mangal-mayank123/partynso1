@@ -23,6 +23,12 @@ class _RegisterState extends State<Register> {
   var select_relation;
   bool weed = false, pet = false;
   final formkey = GlobalKey<FormState>();
+  @override
+  initState() {
+    pr = new ProgressDialog(context);
+    pr.hide();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -605,6 +611,7 @@ class _ThirdregisterState extends State<Thirdregister> {
                                   onChanged: (bool value) {
                                     setState(() {
                                       Networking = value;
+                                      User.userprofile['networking'] = value;
                                     });
                                   },
                                 ),
@@ -625,6 +632,7 @@ class _ThirdregisterState extends State<Thirdregister> {
                                   onChanged: (bool value) {
                                     setState(() {
                                       dating = value;
+                                      User.userprofile['dating'] = value;
                                     });
                                   },
                                 ),
@@ -645,6 +653,7 @@ class _ThirdregisterState extends State<Thirdregister> {
                                   onChanged: (bool value) {
                                     setState(() {
                                       social = value;
+                                      User.userprofile['socialcircle'] = value;
                                     });
                                   },
                                 ),
@@ -702,7 +711,8 @@ class _ThirdregisterState extends State<Thirdregister> {
                             value.setString(
                                 User.userprofile["user_id"] + "-age_s", "0");
                             value.setString(
-                                User.userprofile["user_id"] + "-slider", "100");
+                                User.userprofile["user_id"] + "-slider",
+                                "1000");
                             value.setString(
                                 User.userprofile["user_id"] + "-group_type",
                                 "Man");

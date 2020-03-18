@@ -16,6 +16,7 @@ import 'package:partynso/view.dart';
 
 class login extends StatefulWidget {
   bool _isLoggedIn = false;
+  bool _isregistered = false;
   @override
   _loginState createState() => _loginState();
 }
@@ -29,48 +30,79 @@ class _loginState extends State<login> {
   var formkey = GlobalKey<FormState>();
   @override
   void initState() {
-    if (User.userprofile["user_id"] != null) {
-      setState(() {
-        widget._isLoggedIn = true;
-      });
-    }
+    print("hhvvmjmjbj,bbj");
+    FirebaseAuth.instance.currentUser().then((value) {
+      if (value != null) {
+        setState(() {
+          widget._isLoggedIn = true;
+        });
+      }
+    });
   }
 
   _loginWithFB() async {
     final result = await facebookLogin.logIn(['email']);
-    pr.hide();
+    pr.show();
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
-        pr.show();
         AuthCredential credential = await FacebookAuthProvider.getCredential(
             accessToken: result.accessToken.token);
-        await firebaseAuth.signInWithCredential(credential).then((user) {
-          print(user.additionalUserInfo.profile);
-          FirebaseAuth.instance
-              .currentUser()
-              .then((value) => User.userprofile['user_id'] = value.uid);
-          User.userprofile['f_name'] = user.additionalUserInfo.profile['name']
-              .toString()
-              .split(" ")
-              .first;
-          User.userprofile['l_name'] = user.additionalUserInfo.profile['name']
-              .toString()
-              .split(" ")
-              .last;
-          User.userprofile['img_url'] = user
-              .additionalUserInfo.profile['picture']['data']['url']
-              .toString();
-          User.userprofile['email'] = user.additionalUserInfo.profile['email'];
-          pr.hide();
-          Navigator.push(
-              context, MaterialPageRoute(builder: (context) => Register()));
+        await firebaseAuth.signInWithCredential(credential).then((user) async {
+          User.userprofile['user_id'] = user.user.uid;
+          print(user.user.uid);
+          await Firestore.instance
+              .collection("Profile")
+              .where('user_id', isEqualTo: user.user.uid)
+              .getDocuments()
+              .then((value) {
+            print(value.documents.length);
+            if (value.documents.length != 0) {
+              SharedPreferences.getInstance().then((value) {
+                value.setString("user_id", User.userprofile["user_id"]);
+                value.setString(User.userprofile["user_id"] + "-age_e", "100");
+                value.setString(User.userprofile["user_id"] + "-age_s", "0");
+                value.setString(
+                    User.userprofile["user_id"] + "-slider", "1000");
+                value.setString(
+                    User.userprofile["user_id"] + "-group_type", "Man");
+                value.setString(
+                    User.userprofile["user_id"] + "-peoples", 10.toString());
+                pr.hide();
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) => Homepage()));
+              });
+            } else {
+              print("else");
+              User.userprofile['f_name'] = user
+                  .additionalUserInfo.profile['name']
+                  .toString()
+                  .split(" ")
+                  .first;
+              User.userprofile['l_name'] = user
+                  .additionalUserInfo.profile['name']
+                  .toString()
+                  .split(" ")
+                  .last;
+              User.userprofile['img_url'] = user
+                  .additionalUserInfo.profile['picture']['data']['url']
+                  .toString();
+              User.userprofile['email'] =
+                  user.additionalUserInfo.profile['email'];
+              pr.hide();
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Register()));
+            }
+          });
         });
         break;
 
       case FacebookLoginStatus.cancelledByUser:
+        pr.hide();
         return false;
         break;
       case FacebookLoginStatus.error:
+        pr.hide();
+        print(result.errorMessage);
         return false;
         break;
     }
@@ -100,66 +132,6 @@ class _loginState extends State<login> {
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(children: <Widget>[
-                Container(
-                  child: Form(
-                    key: formkey,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Container(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                labelText: 'Email',
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                              ),
-                              textAlign: TextAlign.left,
-                              keyboardType: TextInputType.text,
-                              validator: (val) {
-                                if (val.isEmpty) {
-                                  return 'Enter Valid Email';
-                                }
-                              },
-                              onChanged: (v) {},
-                              onSaved: (v) {
-                                setState(() {
-                                  username = v;
-                                });
-                              },
-                            ),
-                          ),
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height * .02,
-                          ),
-                          Container(
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                labelText: 'Password',
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30)),
-                              ),
-                              textAlign: TextAlign.left,
-                              keyboardType: TextInputType.text,
-                              validator: (val) {
-                                if (val.isEmpty) {
-                                  return 'Enter Correct Password';
-                                }
-                              },
-                              onChanged: (v) {},
-                              onSaved: (v) {
-                                setState(() {
-                                  password = v;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
                 SizedBox(
                   width: double.infinity,
                   child: Container(
@@ -169,55 +141,7 @@ class _loginState extends State<login> {
                       color: Colors.indigoAccent,
                       padding:
                           EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      child: Text("Login",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white,
-                          )),
-                      onPressed: () async {
-                        pr.show();
-                        var form = formkey.currentState;
-                        if (form.validate()) {
-                          form.save();
-                          var x = await Firestore.instance
-                              .collection("Profile")
-                              .getDocuments();
-                          x.documents.forEach((element) {
-                            if (element.data["email"] == username &&
-                                element.data['password'] == password) {
-                              pr.hide();
-                              User.userprofile['user_id'] =
-                                  element.data['user_id'];
-                              SharedPreferences.getInstance().then((value) {
-                                value.setString(
-                                    "user_id", element.data["user_id"]);
-                                Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => Homepage()));
-                              });
-                            }
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * .02,
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Container(
-                    child: RaisedButton(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
-                      color: Colors.indigoAccent,
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      child: Text("SignUp with Phone Number",
+                      child: Text("SignIn with Phone Number",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -245,7 +169,7 @@ class _loginState extends State<login> {
                       color: Colors.indigoAccent,
                       padding:
                           EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      child: Text("SignUp with FACEBOOK",
+                      child: Text("Continue with FACEBOOK",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w900,
@@ -265,5 +189,26 @@ class _loginState extends State<login> {
         ]),
       );
     }
+  }
+
+  void _show(BuildContext context) {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Messege'),
+            content: Text("Invalid email and password"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("ok"),
+                onPressed: () {
+                  pr.hide();
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        });
   }
 }

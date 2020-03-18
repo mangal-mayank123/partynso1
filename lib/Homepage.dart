@@ -69,7 +69,7 @@ class _HomepageState extends State<Homepage> {
               backgroundColor: Colors.black),
           BottomNavigationBarItem(
               icon: Icon(Icons.person),
-              title: Text("Pofile"),
+              title: Text("Profile"),
               backgroundColor: Colors.black),
         ],
       ),

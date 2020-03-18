@@ -15,7 +15,7 @@ class Profile extends StatefulWidget {
   _ProfileState createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile> {
+class _ProfileState extends State<Profile>  with AutomaticKeepAliveClientMixin {
   List<String> images;
   Map<String, dynamic> map;
 
@@ -164,4 +164,8 @@ class _ProfileState extends State<Profile> {
           ),
         ]));
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

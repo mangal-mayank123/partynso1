@@ -9,7 +9,7 @@ class event_history extends StatefulWidget {
 }
 
 class _event_historyState extends State<event_history>
-    with SingleTickerProviderStateMixin {
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   TabController _tabController;
   String id;
   usr() async {
@@ -85,8 +85,30 @@ class _event_historyState extends State<event_history>
                                           vertical: 4.0, horizontal: 6),
                                       child: Row(
                                         children: <Widget>[
-                                          CircleAvatar(
-                                              backgroundColor: Colors.grey),
+                                          FutureBuilder<QuerySnapshot>(
+                                            future: Firestore.instance
+                                                .collection("Profile")
+                                                .document(snapshot.data
+                                                    .documents[0]['user_id'])
+                                                .collection('images')
+                                                .getDocuments(),
+                                            builder: (BuildContext context,
+                                                AsyncSnapshot c) {
+                                              if (c.hasData) {
+                                                return CircleAvatar(
+                                                  radius: 25.0,
+                                                  backgroundColor: Colors.grey,
+                                                  backgroundImage: NetworkImage(
+                                                      c.data.documents[0]
+                                                          ['url']),
+                                                );
+                                              } else {
+                                                return CircleAvatar(
+                                                    backgroundColor:
+                                                        Colors.grey);
+                                              }
+                                            },
+                                          ),
                                           SizedBox(
                                               width: MediaQuery.of(context)
                                                       .size
@@ -123,13 +145,9 @@ class _event_historyState extends State<event_history>
                                                     color: Colors.white70,
                                                   )),
                                               SizedBox(height: 4),
-                                              Text(
-                                                  snapshot.data.documents[index]
-                                                      ["time"],
-                                                  style: TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 15,
-                                                  )),
+                                              time(snapshot
+                                                  .data.documents[index]["time"]
+                                                  .toString()),
                                               Text(
                                                   snapshot.data.documents[index]
                                                       ["address"],
@@ -169,25 +187,6 @@ class _event_historyState extends State<event_history>
                     children: l,
                     shrinkWrap: true,
                   );
-                  /* ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => Home()));
-                    var x = snapshot.data.documents[index]['list'];
-                    List<dynamic> l2 = x;
-                    List<dynamic> l = new List<dynamic>();
-                    if (l2 == null) {
-
-                      return Event(snapshot, index, context);
-                    } else if (l2 != null && !l2.contains(id)) {
-
-                      return Event(snapshot, index, context);
-                    } else
-                      return Container();
-                  },
-                  itemCount: snapshot.data.documents.length);*/
                 } else {
                   return Text("Loading.....");
                 }
@@ -217,7 +216,24 @@ class _event_historyState extends State<event_history>
           padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 6),
           child: Row(
             children: <Widget>[
-              CircleAvatar(backgroundColor: Colors.grey),
+              FutureBuilder<QuerySnapshot>(
+                future: Firestore.instance
+                    .collection("Profile")
+                    .document(snapshot.data['user_id'])
+                    .collection('images')
+                    .getDocuments(),
+                builder: (BuildContext context, AsyncSnapshot c) {
+                  if (c.hasData) {
+                    return CircleAvatar(
+                      radius: 25.0,
+                      backgroundColor: Colors.grey,
+                      backgroundImage: NetworkImage(c.data.documents[0]['url']),
+                    );
+                  } else {
+                    return CircleAvatar(backgroundColor: Colors.grey);
+                  }
+                },
+              ),
               SizedBox(width: MediaQuery.of(context).size.width * .02),
               Column(
                 children: <Widget>[
@@ -237,11 +253,7 @@ class _event_historyState extends State<event_history>
                         color: Colors.white70,
                       )),
                   SizedBox(height: 4),
-                  Text(snapshot["time"],
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 15,
-                      )),
+                  time(snapshot["time"].toString()),
                   Text(snapshot["location"],
                       style: TextStyle(
                         color: Colors.white70,
@@ -255,4 +267,32 @@ class _event_historyState extends State<event_history>
       ),
     );
   }
+
+  time(snapshot) {
+    if (int.parse(snapshot.toString().split(":").first) > 12) {
+      return Text(
+          (int.parse(snapshot.toString().split(":").first) - 12).toString() +
+              ":" +
+              snapshot.toString().split(":").last +
+              " PM",
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 15,
+          ));
+    } else {
+      return Text(
+          (int.parse(snapshot.toString().split(":").first)).toString() +
+              ":" +
+              snapshot.toString().split(":").last +
+              " AM",
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 15,
+          ));
+    }
+  }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }

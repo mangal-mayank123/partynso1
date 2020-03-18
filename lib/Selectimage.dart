@@ -45,7 +45,7 @@ class _UploadState extends State<Upload> {
     progressDialog = ProgressDialog(context, type: ProgressDialogType.Normal);
     return Scaffold(
         appBar: AppBar(
-          title: Text('Image Upload'),
+          title: Text('Upload Your Images'),
           centerTitle: true,
         ),
         body: Column(children: <Widget>[
