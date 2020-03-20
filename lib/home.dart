@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:partynso/Post.dart';
 import 'package:partynso/Profile2.dart';
 import 'package:partynso/Rating_page.dart';
+import 'package:partynso/Rating_page2.dart';
+
 import 'package:partynso/User.dart';
 import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,70 +53,8 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
 
   @override
   void initState() {
-    /*Firestore.instance
-        .collection("Profile")
-        .document(User.userprofile['user_id'])
-        .collection("Approved_By_Me")
-        .where('timestamp', isLessThan: Timestamp.now())
-        .getDocuments()
-        .then((value) {
-      if (value != null) {
-        List<Widget> ll = new List<Widget>();
-        value.documents.forEach((element) {
-          double rating = 1;
-          Post.rl.add(
-            [
-              element.data['user_id'],
-              element.data['venue_id'],
-              "1",
-              element.documentID.toString()
-            ],
-          );
-          ll.add(RatingBar(element));
-        });
-
-        ll.add(RaisedButton(
-          onPressed: () {
-            print(Post.rl);
-            Post.rl.forEach((element) async {
-              print(Post.rl.length);
-              await Firestore.instance
-                  .collection("Profile")
-                  .document(element[0])
-                  .get()
-                  .then((value) async {
-                await Firestore.instance
-                    .collection("Profile")
-                    .document(element[0])
-                    .updateData({
-                  "rating": value.data['rating'] + double.parse(element[2]),
-                  "no_of_ratings": value.data["no_of_ratings"] + 1
-                });
-              });
-            });
-          },
-          child: Text("Rate"),
-        ));
-
-        if (ll.length > 1) {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return Padding(
-                  padding: const EdgeInsets.only(
-                      top: 20.0, bottom: 150, left: 20, right: 20),
-                  child: Container(
-                    color: Colors.white30,
-                    child: ListView(
-                      children: ll,
-                      shrinkWrap: true,
-                    ),
-                  ),
-                );
-              });
-        }
-      }
-    });*/
+    ratingList();
+    ratingList2();
     enable = true;
     print(User.userprofile["user_id"]);
     Geolocator().getCurrentPosition().then((val) {
@@ -773,6 +713,8 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
                             .document(id)
                             .collection('Approved')
                             .add({
+                          'rated': false,
+                          'timestamp': snapshot['timestamp'],
                           "mobno": value.data['mobno'],
                           "status": "pending",
                           "user_id": snapshot['user_id'],
@@ -889,126 +831,203 @@ class _HomeState extends State<Home> with AutomaticKeepAliveClientMixin {
       ),
     );
   }
-}
 
-/*
-
-
-
-
-
-
-
-
-
-
-
-
-
- Container(
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: RaisedButton.icon(
-                  icon: Icon(Icons.cancel),
-                  label: Text(" "),
-                  onPressed: () async {
-                    controller.jumpTo(controller.position.minScrollExtent);
-                    await Firestore.instance
-                        .collection('Venue')
-                        .document(snapshot['venue_id'])
-                        .get()
-                        .then((value) async {
-                      var x = value.data['list'];
-                      List<dynamic> l2 = x;
-                      List<dynamic> l = new List<dynamic>();
-                      l.addAll(l2);
-                      if (!l2.contains(id)) l.add(id);
-                      value.reference.updateData({
-                        'list': l.toSet().toList()
-                      }).whenComplete(() => setState(() {
-                            lastid = snapshot['venue_id'];
-                          }));
-                    });
-                    await Firestore.instance
-                        .collection('Venue')
-                        .document(snapshot['venue_id'])
-                        .get()
-                        .then((value) async {
-                      var x = value.data['dislikes'];
-                      List<dynamic> l2 = x;
-                      List<dynamic> l = new List<dynamic>();
-                      l.addAll(l2);
-                      if (!l2.contains(id)) l.add(id);
-                      value.reference
-                          .updateData({'dislikes': l.toSet().toList()});
-                    });
-                  },
-                ),
+  void ratingList() {
+    Firestore.instance
+        .collection("Profile")
+        .document(User.userprofile['user_id'])
+        .collection("Approved")
+        .where('rated', isEqualTo: false)
+        .getDocuments()
+        .then((value) {
+      if (value != null) {
+        List<Widget> ll = new List<Widget>();
+        ll.add(
+          Dialog(
+              child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              "Hosted Rating List",
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * .1,
-              ),
-              Expanded(
-                child: RaisedButton.icon(
-                  onPressed: () async {
-                    controller.jumpTo(controller.position.minScrollExtent);
-                    await Firestore.instance
-                        .collection('Venue')
-                        .document(snapshot['venue_id'])
-                        .get()
-                        .then((value) async {
-                      var x = value.data['list'];
-                      List<dynamic> l2 = x;
-                      List<dynamic> l = new List<dynamic>();
-                      l.addAll(l2);
-                      if (!l2.contains(id)) l.add(id);
-                      value.reference.updateData({'list': l.toSet().toList()});
-                    });
-                    setState(() {});
-                    await Firestore.instance
-                        .collection('Profile')
-                        .document(snapshot['user_id'])
-                        .collection('Applications')
-                        .add({
-                      'timestamp': snapshot['timestamp'],
-                      'coordi_lo': snapshot['coordi_lo'],
-                      "coordi_la": snapshot['coordi_la'],
-                      "user_id": id,
-                      'username': name,
-                      'E_name': snapshot['E_name'],
-                      'time': snapshot['time'],
-                      'date': snapshot['date'],
-                      'address': snapshot['location'],
-                      'venue_id': snapshot['venue_id'],
-                    });
-                    await Firestore.instance
+            ),
+          )),
+        );
+        var formkey1 = GlobalKey<FormState>();
+        value.documents.forEach((element) {
+          if (Post.rl1.containsKey(element.data['user_id'])) {
+            Post.rl1[element.data['user_id']][2] =
+                (double.parse(Post.rl1[element.data['user_id']][2]).floor() + 1)
+                    .toString();
+            Post.rl1[element.data['user_id']][4].add(element.documentID);
+          } else {
+            Post.rl1[element.data['user_id']] = [
+              element.data['user_id'],
+              element.data['venue_id'],
+              "1",
+              "0",
+              [element.documentID.toString()]
+            ];
+          }
+          ll.add(RatingBar2(element));
+        });
+
+        ll.add(RaisedButton(
+          onPressed: () {
+            formkey1.currentState.save();
+            Navigator.of(context).pop();
+            print(Post.rl1);
+            Post.rl1.forEach((key, value) async {
+              print(value[2] + '    hjhjvvhvhvh   ' + value[3]);
+              Firestore.instance
+                  .collection("Profile")
+                  .document(value[0])
+                  .get()
+                  .then((element) async {
+                await element.reference.updateData({
+                  "rating_as_hosted":
+                      element.data['rating_as_hosted'] + double.parse(value[3]),
+                  "no_of_ratings_as_hosted":
+                      element.data["no_of_ratings_as_hosted"] +
+                          double.parse(value[2])
+                }).whenComplete(() {
+                  value[4].forEach((c) {
+                    Firestore.instance
                         .collection("Profile")
-                        .document(snapshot["user_id"])
-                        .get()
-                        .then((value) async {
-                      await Firestore.instance
-                          .collection('Profile')
-                          .document(id)
-                          .collection('Approved')
-                          .add({
-                        "mobno": value.data['mobno'],
-                        "status": "pending",
-                        "user_id": snapshot['user_id'],
-                        'username': snapshot['user_name'],
-                        'E_name': snapshot['E_name'],
-                        'time': snapshot['time'],
-                        'date': snapshot['date'],
-                        'address': snapshot['location'],
-                        'venue_id': snapshot['venue_id'],
-                      });
-                    });
-                  },
-                  icon: Icon(Icons.check),
-                  label: Text(" "),
-                ),
-              )
-            ],
-          ),
-        ),
-*/
+                        .document(User.userprofile['user_id'])
+                        .collection("Approved")
+                        .document(c)
+                        .updateData({"rated": true});
+                  });
+                });
+              });
+            });
+          },
+          child: Text("Rate"),
+        ));
+
+        if (ll.length > 2) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return Padding(
+                  padding: const EdgeInsets.only(
+                      top: 20.0, bottom: 150, left: 20, right: 20),
+                  child: Container(
+                    color: Colors.white30,
+                    child: Form(
+                      key: formkey1,
+                      child: ListView(
+                        children: ll,
+                        shrinkWrap: true,
+                      ),
+                    ),
+                  ),
+                );
+              });
+        }
+      }
+    });
+  }
+
+  void ratingList2() {
+    Firestore.instance
+        .collection("Profile")
+        .document(User.userprofile['user_id'])
+        .collection("Approved_By_Me")
+        .where('timestamp', isLessThan: Timestamp.now())
+        .getDocuments()
+        .then((value) {
+      if (value != null) {
+        List<Widget> ll = new List<Widget>();
+        ll.add(
+          Dialog(
+              child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              "Attende Rating List",
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          )),
+        );
+        var formkey = GlobalKey<FormState>();
+        value.documents.forEach((element) {
+          if (Post.rl.containsKey(element.data['user_id'])) {
+            Post.rl[element.data['user_id']][2] =
+                (double.parse(Post.rl[element.data['user_id']][2]).floor() + 1)
+                    .toString();
+            Post.rl[element.data['user_id']][4].add(element.documentID);
+          } else {
+            Post.rl[element.data['user_id']] = [
+              element.data['user_id'],
+              element.data['venue_id'],
+              "1",
+              "0",
+              [element.documentID.toString()]
+            ];
+          }
+
+          ll.add(RatingBar(element));
+        });
+
+        ll.add(RaisedButton(
+          onPressed: () {
+            formkey.currentState.save();
+            Navigator.of(context).pop();
+            print(Post.rl);
+            Post.rl.forEach((key, value) async {
+              print(value[2] + '    hjhjvvhvhvh   ' + value[3]);
+              Firestore.instance
+                  .collection("Profile")
+                  .document(value[0])
+                  .get()
+                  .then((element) async {
+                await element.reference.updateData({
+                  "rating": element.data['rating'] + double.parse(value[3]),
+                  "no_of_ratings":
+                      element.data["no_of_ratings"] + double.parse(value[2])
+                }).whenComplete(() {
+                  value[4].forEach((c) {
+                    Firestore.instance
+                        .collection("Profile")
+                        .document(User.userprofile['user_id'])
+                        .collection("Approved_By_Me")
+                        .document(c)
+                        .delete();
+                  });
+                });
+              });
+            });
+          },
+          child: Text("Rate"),
+        ));
+
+        if (ll.length > 2) {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return Padding(
+                  padding: const EdgeInsets.only(
+                      top: 20.0, bottom: 150, left: 20, right: 20),
+                  child: Container(
+                    color: Colors.white30,
+                    child: Form(
+                      key: formkey,
+                      child: ListView(
+                        children: ll,
+                        shrinkWrap: true,
+                      ),
+                    ),
+                  ),
+                );
+              });
+        }
+      }
+    });
+  }
+}

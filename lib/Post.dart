@@ -23,6 +23,6 @@ class Post {
     'contribute': null,
     'report': 0
   };
-  static List<List<String>> rl = new List<List<String>>();
-  static List<String> rl1 = new List<String>();
+  static Map<String, List> rl = new Map<String, List>();
+  static Map<String, List> rl1 = new Map<String, List>();
 }

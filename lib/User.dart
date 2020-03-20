@@ -27,5 +27,7 @@ class User {
     'password': null,
     'rating': 1,
     'no_of_ratings': 1,
+    'rating_as_hosted': 1,
+    'no_of_ratings_as_hosted': 1,
   };
 }

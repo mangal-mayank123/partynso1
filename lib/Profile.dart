@@ -15,7 +15,7 @@ class Profile extends StatefulWidget {
   _ProfileState createState() => _ProfileState();
 }
 
-class _ProfileState extends State<Profile>  with AutomaticKeepAliveClientMixin {
+class _ProfileState extends State<Profile> with AutomaticKeepAliveClientMixin {
   List<String> images;
   Map<String, dynamic> map;
 
@@ -92,6 +92,49 @@ class _ProfileState extends State<Profile>  with AutomaticKeepAliveClientMixin {
             child: Container(
               child: ListView(
                 children: <Widget>[
+                  map == null
+                      ? Text("First Name")
+                      : Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text("Hosted Rating",
+                                              style: TextStyle(fontSize: 16)),
+                                          Text((map["rating_as_hosted"] /
+                                                  map['no_of_ratings_as_hosted'])
+                                              .floor()
+                                              .toString())
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text("Attende Rating",
+                                              style: TextStyle(fontSize: 16)),
+                                          Text((map["rating"] /
+                                                  map['no_of_ratings'])
+                                              .floor()
+                                              .toString())
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                   map == null
                       ? Text("First Name")
                       : Card(

@@ -95,6 +95,49 @@ class _Profile2State extends State<Profile2> {
                   map == null
                       ? Text("First Name")
                       : Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text("Hosted Rating",
+                                              style: TextStyle(fontSize: 16)),
+                                          Text((map["rating_as_hosted"] /
+                                                  map['no_of_ratings_as_hosted'])
+                                              .floor()
+                                              .toString())
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Center(
+                                    child: Container(
+                                      child: Column(
+                                        children: <Widget>[
+                                          Text("Attende Rating",
+                                              style: TextStyle(fontSize: 16)),
+                                          Text((map["rating"] /
+                                                  map['no_of_ratings'])
+                                              .floor()
+                                              .toString())
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                  map == null
+                      ? Text("First Name")
+                      : Card(
                           child: ListTile(
                             subtitle: Text(
                               map['f_name'] + " " + map['l_name'],
